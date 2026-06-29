@@ -1,4 +1,5 @@
 using AutoMapper;
+using ECommerceApi.Repositories;
 using ECommerceApi.Data;
 using ECommerceApi.Mappings;
 using ECommerceApi.Services;
@@ -24,6 +25,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IBasketService, BasketService>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 var app = builder.Build();
 

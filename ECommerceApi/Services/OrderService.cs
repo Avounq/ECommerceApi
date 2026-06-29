@@ -1,4 +1,5 @@
 ﻿using ECommerceApi.Data;
+using ECommerceApi.Repositories;
 using AutoMapper;
 using ECommerceApi.Dtos;
 using ECommerceApi.Models;
@@ -8,10 +9,15 @@ namespace ECommerceApi.Services
     public class OrderService : IOrderService
     {
         private readonly AppDbContext _context;
+        private readonly IGenericRepository<Order> _repository;
         private readonly IMapper _mapper;
-        public OrderService(AppDbContext context, IMapper mapper)
+        public OrderService(
+    AppDbContext context,
+    IGenericRepository<Order> repository,
+    IMapper mapper)
         {
             _context = context;
+            _repository = repository;
             _mapper = mapper;
         }
 
@@ -28,8 +34,8 @@ namespace ECommerceApi.Services
         {
             var order = _mapper.Map<Order>(dto);
 
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+            await _repository.AddAsync(order);
+            await _repository.SaveChangesAsync();
             return order;
     }
 }

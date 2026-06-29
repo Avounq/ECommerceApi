@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using ECommerceApi.Repositories;
+using AutoMapper;
 using ECommerceApi.Data;
 using ECommerceApi.Dtos;
 using ECommerceApi.Models;
@@ -8,29 +9,27 @@ namespace ECommerceApi.Services
 {
     public class ProductService : IProductService
     {
-        private readonly AppDbContext _context;
+        private readonly IGenericRepository<Product> _repository;
         private readonly IMapper _mapper;
 
-        public ProductService(AppDbContext context, IMapper mapper)
+        public ProductService(IGenericRepository<Product> repository, IMapper mapper)
         {
-            _context = context;
+            _repository = repository;
             _mapper = mapper;
         }
-
         public async Task<List<ProductResponseDto>> GetAllAsync()
         {
-            var products = await _context.Products.ToListAsync();
+            var products = await _repository.GetAllAsync();
+
             return _mapper.Map<List<ProductResponseDto>>(products);
         }
 
         public async Task<Product> AddAsync(CreateProductDto dto)
         {
             var product = _mapper.Map<Product>(dto);
-            
 
-            _context.Products.Add(product);
-
-            await _context.SaveChangesAsync();
+            await _repository.AddAsync(product);
+            await _repository.SaveChangesAsync();
 
             return product;
         }

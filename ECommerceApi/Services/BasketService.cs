@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ECommerceApi.Repositories;
 using ECommerceApi.Data;
 using ECommerceApi.Dtos;
 using ECommerceApi.Models;
@@ -9,13 +10,19 @@ namespace ECommerceApi.Services
     public class BasketService : IBasketService
     {
         private readonly AppDbContext _context;
+        private readonly IGenericRepository<Basket> _repository;
         private readonly IMapper _mapper;
 
-        public BasketService(AppDbContext context, IMapper mapper)
+        public BasketService(
+    AppDbContext context,
+    IGenericRepository<Basket> repository,
+    IMapper mapper)
         {
             _context = context;
+            _repository = repository;
             _mapper = mapper;
         }
+        
 
         public async Task<List<BasketResponseDto>> GetAllAsync()
         {
@@ -31,8 +38,8 @@ namespace ECommerceApi.Services
         {
             var basket = _mapper.Map<Basket>(dto);
 
-            _context.Baskets.Add(basket);
-            await _context.SaveChangesAsync();
+            await _repository .AddAsync(basket);
+            await _repository.SaveChangesAsync();
 
             return basket;
         }

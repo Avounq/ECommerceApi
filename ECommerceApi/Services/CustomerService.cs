@@ -2,24 +2,25 @@
 using ECommerceApi.Data;
 using ECommerceApi.Dtos;
 using ECommerceApi.Models;
+using ECommerceApi.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceApi.Services
 {
     public class CustomerService : ICustomerService
     {
-        private readonly AppDbContext _context;
+        private readonly IGenericRepository<Customer> _repository;
         private readonly IMapper _mapper;
 
-        public CustomerService(AppDbContext context, IMapper mapper)
+        public CustomerService(IGenericRepository<Customer> repository, IMapper mapper)
         {
-            _context = context;
+            _repository = repository;
             _mapper = mapper;
         }
 
         public async Task<List<CustomerResponseDto>> GetAllAsync()
         {
-            var customers = await _context.Customers.ToListAsync();
+            var customers = await _repository.GetAllAsync();    
 
             return _mapper.Map<List<CustomerResponseDto>>(customers);
         }
@@ -28,9 +29,9 @@ namespace ECommerceApi.Services
         {
             var customer = _mapper.Map<Customer>(dto);
 
-            _context.Customers.Add(customer);
+            await _repository.AddAsync(customer);
 
-            await _context.SaveChangesAsync();
+            await _repository.SaveChangesAsync();
 
             return customer;
         }
