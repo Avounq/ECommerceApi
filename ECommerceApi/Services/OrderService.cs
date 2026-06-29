@@ -4,20 +4,21 @@ using AutoMapper;
 using ECommerceApi.Dtos;
 using ECommerceApi.Models;
 using Microsoft.EntityFrameworkCore;
+using ECommerceApi.UnitOfWork;
 namespace ECommerceApi.Services
 {
     public class OrderService : IOrderService
     {
         private readonly AppDbContext _context;
-        private readonly IGenericRepository<Order> _repository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         public OrderService(
     AppDbContext context,
-    IGenericRepository<Order> repository,
+    IUnitOfWork unitOfWork,
     IMapper mapper)
         {
             _context = context;
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -34,8 +35,8 @@ namespace ECommerceApi.Services
         {
             var order = _mapper.Map<Order>(dto);
 
-            await _repository.AddAsync(order);
-            await _repository.SaveChangesAsync();
+            await _unitOfWork.Orders.AddAsync(order);
+            await _unitOfWork.SaveChangesAsync();
             return order;
     }
 }
