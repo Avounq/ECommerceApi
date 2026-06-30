@@ -1,5 +1,6 @@
 ﻿using ECommerceApi.Data;
 using ECommerceApi.Dtos;
+using ECommerceApi.Exceptions;
 using ECommerceApi.Models;
 using ECommerceApi.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -37,21 +38,22 @@ namespace ECommerceApi.Controllers
             return Ok(basket);
         }
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBasket(int id, Basket updatedBaskter)
+        public async Task<IActionResult> UpdateBasket(int id, UpdateBasketDto updatedBasket)
         {
             var basket = await _context.Baskets.FindAsync(id);
 
             if (basket == null)
             {
-                return NotFound("Bu id'ye sahip bir sepet bulunamadı. ");
-        }
-            basket.CustomerId = updatedBaskter.CustomerId;
-            basket.ProductId = updatedBaskter.ProductId;
-            basket.Quantity = updatedBaskter.Quantity;
-            await _context.SaveChangesAsync();
-            return Ok("Sepet başarıyla güncellendi.");
-    
+                throw new NotFoundException("Bu id'ye sahip bir sepet bulunamadı.");
+            }
 
+            basket.CustomerId = updatedBasket.CustomerId;
+            basket.ProductId = updatedBasket.ProductId;
+            basket.Quantity = updatedBasket.Quantity;
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Sepet başarıyla güncellendi.");
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBasket(int id)
@@ -60,8 +62,8 @@ namespace ECommerceApi.Controllers
 
             if ( basket == null)
             {
-                return NotFound("Bu id'ye sahip bir sepet bulunamadı");
-        }
+                throw new NotFoundException("Bu id'ye sahip bir sepet bulunamadı.");
+            }
             _context.Baskets.Remove(basket); 
             await _context.SaveChangesAsync();
             return Ok("Girilen id'li sepet başarıyla silindi");

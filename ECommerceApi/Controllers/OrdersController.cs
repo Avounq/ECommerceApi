@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ECommerceApi.Data;
 using ECommerceApi.Dtos;
+using ECommerceApi.Exceptions;
 using ECommerceApi.Models;
 using ECommerceApi.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -47,18 +48,22 @@ namespace ECommerceApi.Controllers
             return Ok(order);
         }
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateOrder(int id, Order updatedOrder)
+        public async Task<IActionResult> UpdateOrder(int id, UpdateOrderDto updatedOrder)
         {
             var order = await _context.Orders.FindAsync(id);
+
             if (order == null)
             {
-                return NotFound("Bu id'ye sahip bir sipariş bulunamadı. ");
-        }
+                throw new NotFoundException("Bu id'ye sahip bir sipariş bulunamadı.");
+            }
+
             order.CustomerId = updatedOrder.CustomerId;
             order.ProductId = updatedOrder.ProductId;
             order.Quantity = updatedOrder.Quantity;
+
             await _context.SaveChangesAsync();
-            return Ok("Sipariş başarıyla güncellendi. ");
+
+            return Ok("Sipariş başarıyla güncellendi.");
         }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -67,7 +72,7 @@ namespace ECommerceApi.Controllers
 
             if (order == null)
             {
-                return NotFound("Sipariş bulunamadı.");
+                throw new NotFoundException("Sipariş bulunamadı.");
             }
 
             return Ok(order);
@@ -78,7 +83,7 @@ namespace ECommerceApi.Controllers
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
             {
-                return NotFound("Bu id'ye sahip bir sipariş bulunmamaktadır. ");
+                throw new NotFoundException("Bu id'ye sahip bir sipariş bulunmamaktadır.");
 
             }
             _context.Orders.Remove(order!);
