@@ -1,6 +1,15 @@
-@ECommerceApi_HostAddress = http://localhost:5288
+@baseUrl = https://localhost:7254
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc4MjgwNjMxMywiaXNzIjoiRUNvbW1lcmNlQXBpIiwiYXVkIjoiRUNvbW1lcmNlQXBpVXNlciJ9.o2gawsaW0B6rhUGchyomBGj580HmNUb0i8FZZR0enrY
 
-GET {{ECommerceApi_HostAddress}}/weatherforecast/
-Accept: application/json
+### Login
+POST {{baseUrl}}/api/Auth/login
+Content-Type: application/json
 
-###
+{
+  "username": "admin",
+  "password": "123456"
+}
+
+### Products - Authorized Test
+GET {{baseUrl}}/api/Products
+Authorization: Bearer {{token}}

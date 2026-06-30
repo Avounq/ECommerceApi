@@ -1,6 +1,7 @@
 ﻿using ECommerceApi.Dtos;
 using ECommerceApi.Data;
 using ECommerceApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata.Ecma335;
@@ -9,6 +10,8 @@ namespace ECommerceApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
+    
     public class ProductsController : ControllerBase
     {
         private readonly AppDbContext _context;
