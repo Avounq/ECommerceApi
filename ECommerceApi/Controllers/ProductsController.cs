@@ -1,5 +1,6 @@
-﻿using ECommerceApi.Dtos;
-using ECommerceApi.Data;
+﻿using ECommerceApi.Data;
+using ECommerceApi.Dtos;
+using ECommerceApi.Exceptions;
 using ECommerceApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,7 @@ namespace ECommerceApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     
     public class ProductsController : ControllerBase
     {
@@ -24,6 +25,7 @@ namespace ECommerceApi.Controllers
         [HttpGet] //GetAll
         public async Task<IActionResult> GetAll()
         {
+           
             var products = await _context.Products.ToListAsync();
 
             return Ok(products);
@@ -35,7 +37,7 @@ namespace ECommerceApi.Controllers
 
             if (product == null)
             {
-                return NotFound("Ürün bulunamadı");
+                throw new NotFoundException("Aradağınız ürün mevcut değil.");
 
             }
             return Ok(product);
@@ -77,14 +79,14 @@ namespace ECommerceApi.Controllers
             return Ok(product);
         }
 
-        [HttpPut("{id}")] //PUT id
-        public async Task<IActionResult> UpdateProduct(int id, Product updatedProduct)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProduct(int id, UpdateProductDto updatedProduct)
         {
             var product = await _context.Products.FindAsync(id);
 
             if (product == null)
             {
-                return NotFound("Girdiğiniz ürün bulunamadı");
+                throw new NotFoundException("Girdiğiniz ürün mevcut değil.");
             }
 
             product.Name = updatedProduct.Name;
@@ -102,7 +104,7 @@ namespace ECommerceApi.Controllers
 
             if (product == null)
             {
-                return NotFound("Ürün bulunamadı");
+                throw new NotFoundException("Girdiğiniz ürün mevcut değil. ");
             }
 
             _context.Products.Remove(product!);

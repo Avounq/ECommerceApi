@@ -2,12 +2,14 @@
 using ECommerceApi.Dtos;
 using ECommerceApi.Models;
 using ECommerceApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class BasketsController : ControllerBase
     {
         private readonly AppDbContext _context;

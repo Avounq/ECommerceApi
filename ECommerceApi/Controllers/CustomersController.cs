@@ -1,13 +1,15 @@
 ﻿using ECommerceApi.Data;
 using ECommerceApi.Dtos;
-using ECommerceApi.Models;
+using ECommerceApi.Exceptions;
 using ECommerceApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class CustomersController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -30,34 +32,40 @@ namespace ECommerceApi.Controllers
         {
             return Ok(await _customerService.AddAsync(dto));
         }
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCustomer(int id, Customer updatedCustomer)
+        public async Task<IActionResult> UpdateCustomer(int id, UpdateCustomerDto updatedCustomer)
         {
             var customer = await _context.Customers.FindAsync(id);
+
             if (customer == null)
             {
-                return NotFound("Böyle bir müşteri bulunamadı. ");
-        }
+                throw new NotFoundException("Böyle bir müşteri bulunamadı.");
+            }
+
             customer.FirstName = updatedCustomer.FirstName;
             customer.LastName = updatedCustomer.LastName;
             customer.Email = updatedCustomer.Email;
 
             await _context.SaveChangesAsync();
-            return Ok("Müşteri bilgileri başarıyla güncellendi");
 
+            return Ok("Müşteri bilgileri başarıyla güncellendi");
         }
+
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteCustomer(int id)
+        public async Task<IActionResult> DeleteCustomer(int id)
         {
             var customer = await _context.Customers.FindAsync(id);
 
             if (customer == null)
             {
-                return NotFound("Bu bilgilere sahip bir müşteri bulunmamaktadır. ");
+                throw new NotFoundException("Bu bilgilere sahip bir müşteri bulunmamaktadır.");
             }
-            _context.Customers.Remove(customer!);
+
+            _context.Customers.Remove(customer);
             await _context.SaveChangesAsync();
-            return Ok("Bilgileri girilen müşteri başarıyla silindi. ");
+
+            return Ok("Bilgileri girilen müşteri başarıyla silindi.");
         }
-}
+    }
 }

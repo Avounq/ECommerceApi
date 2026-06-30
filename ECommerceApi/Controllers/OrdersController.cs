@@ -1,13 +1,16 @@
-﻿using ECommerceApi.Data;
+﻿using AutoMapper;
+using ECommerceApi.Data;
 using ECommerceApi.Dtos;
 using ECommerceApi.Models;
 using ECommerceApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 namespace ECommerceApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class OrdersController : ControllerBase
     {
         private readonly AppDbContext _context;

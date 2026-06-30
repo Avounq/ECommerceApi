@@ -1,4 +1,5 @@
 using AutoMapper;
+using ECommerceApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi;
 using Microsoft.IdentityModel.Tokens;
@@ -81,6 +82,7 @@ builder.Services.AddAuthentication(options =>
     });
 
 var app = builder.Build();
+app.UseMiddleware<ExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
