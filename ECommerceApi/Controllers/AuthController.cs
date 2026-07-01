@@ -1,14 +1,18 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using ECommerceApi.Dtos;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using ECommerceApi.Dtos;
-using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _configuration;
@@ -16,8 +20,22 @@ namespace ECommerceApi.Controllers
         {
             _configuration = configuration;
         }
+        /// <summary>
+        /// JWT Token üretir.
+        /// </summary>
+        /// <remarks>
+        /// Demo Hesapları:
+        ///
+        /// Admin Username: admin Password: 123456
+        ///
+        /// User Username: user Password: 123456
+        /// </remarks>
         [HttpPost("login")]
-        public IActionResult Login(LoginDto dto)
+        [AllowAnonymous]
+        [Consumes("multipart/form-data")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public IActionResult Login([FromForm] LoginDto dto)
         {
             if (dto.Username != "admin" || dto.Password != "123456")
             {

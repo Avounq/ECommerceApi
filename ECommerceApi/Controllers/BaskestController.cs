@@ -23,22 +23,54 @@ namespace ECommerceApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public IActionResult GetAll([FromQuery] BasketQueryParameters parameters)
         {
-            var baskets = await _basketService.GetAllAsync();
+            var query = _context.Baskets.AsQueryable();
 
-            return Ok(baskets);
+            if (parameters.CustomerId is not null)
+            {
+                query = query.Where(b => b.CustomerId == parameters.CustomerId);
+            }
+
+            if (parameters.ProductId is not null)
+            {
+                query = query.Where(b => b.ProductId == parameters.ProductId);
+            }
+
+            if (parameters.Quantity is not null)
+            {
+                query = query.Where(b => b.Quantity == parameters.Quantity);
+            }
+
+            var totalCount = query.Count();
+
+            var baskets = query
+                .Skip((parameters.PageNumber - 1) * parameters.PageSize)
+                .Take(parameters.PageSize)
+                .ToList();
+
+            var response = new PagedResponse<Basket>
+            {
+                PageNumber = parameters.PageNumber,
+                PageSize = parameters.PageSize,
+                TotalCount = totalCount,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)parameters.PageSize),
+                Data = baskets
+            };
+
+            return Ok(response);
         }
-
         [HttpPost]
-        public async Task<IActionResult> AddBasket(CreateBasketDto dto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> AddBasket([FromForm] CreateBasketDto dto)
         {
             var basket = await _basketService.AddAsync(dto);
 
             return Ok(basket);
         }
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBasket(int id, UpdateBasketDto updatedBasket)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateBasket(int id, [FromForm] UpdateBasketDto updatedBasket)
         {
             var basket = await _context.Baskets.FindAsync(id);
 
