@@ -15,6 +15,7 @@ using System.Collections.Generic;
 
 
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -85,6 +86,12 @@ builder.Services.AddAuthentication(options =>
     });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
 app.UseMiddleware<ExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.

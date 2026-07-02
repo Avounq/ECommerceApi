@@ -36,6 +36,25 @@ namespace ECommerceApi.Controllers
                     c.LastName.ToLower().Contains(search) ||
                     c.Email.ToLower().Contains(search));
             }
+            if (!string.IsNullOrWhiteSpace(parameters.SortBy))
+            {
+                query = parameters.SortBy.ToLower() switch
+                {
+                    "firstname" => parameters.Descending
+                        ? query.OrderByDescending(c => c.FirstName)
+                        : query.OrderBy(c => c.FirstName),
+
+                    "lastname" => parameters.Descending
+                        ? query.OrderByDescending(c => c.LastName)
+                        : query.OrderBy(c => c.LastName),
+
+                    "email" => parameters.Descending
+                        ? query.OrderByDescending(c => c.Email)
+                        : query.OrderBy(c => c.Email),
+
+                    _ => query
+                };
+            }
 
             var totalCount = query.Count();
 

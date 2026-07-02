@@ -1,0 +1,8 @@
+services:
+  ecommerceapi:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+    restart: unless-stopped
+
+  postgres:
+    restart: unless-stopped

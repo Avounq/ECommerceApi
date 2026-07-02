@@ -40,6 +40,21 @@ namespace ECommerceApi.Controllers
 
                 query = query.Where(p => p.Name.ToLower().Contains(search));
             }
+            if (!string.IsNullOrWhiteSpace(parameters.SortBy))
+            {
+                query = parameters.SortBy.ToLower() switch
+                {
+                    "name" => parameters.Descending
+                        ? query.OrderByDescending(p => p.Name)
+                        : query.OrderBy(p => p.Name),
+
+                    "price" => parameters.Descending
+                        ? query.OrderByDescending(p => p.Price)
+                        : query.OrderBy(p => p.Price),
+
+                    _ => query
+                };
+            }
 
             var totalCount = await query.CountAsync();
 
