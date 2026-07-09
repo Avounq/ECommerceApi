@@ -3,11 +3,16 @@
     public class OrderResponseDto
     {
         public int Id { get; set; }
-        public int CustomerId { get; set; }
+        public int? CustomerId { get; set; }
         public string CustomerName { get; set; } = string.Empty;
         public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
         public decimal ProductPrice { get; set; }
         public int Quantity { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public DateTime StatusUpdatedAt { get; set; }
+        public string ShippingAddress { get; set; } = string.Empty;
+        public string PaymentMethod { get; set; } = string.Empty;
+        public string? CardLastFourDigits { get; set; }
     }
 }

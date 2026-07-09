@@ -2,6 +2,8 @@
   <Folder Name="/Çözüm Öğeleri/">
     <File Path=".env" />
     <File Path=".gitignore" />
+    <File Path="docker-compose.override.yml" />
+    <File Path="docker-compose.prod.yml" />
     <File Path="docker-compose.yml" />
   </Folder>
   <Project Path="ECommerceApi/ECommerceApi.csproj" />

@@ -5,6 +5,8 @@ using ECommerceApi.Models;
 using ECommerceApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceApi.Controllers
 {
@@ -25,7 +27,17 @@ namespace ECommerceApi.Controllers
         [HttpGet]
         public IActionResult GetAll([FromQuery] BasketQueryParameters parameters)
         {
-            var query = _context.Baskets.AsQueryable();
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if(!int.TryParse(userIdValue, out var userID))
+            {
+                return Unauthorized(new
+                {
+                    message = "Kullanıcı bilgisi geçersiz. "
+                });
+            }
+            var query = _context.Baskets
+        .Where(b => b.UserId == userID)
+        .AsQueryable();
 
             if (parameters.CustomerId is not null)
             {
@@ -45,11 +57,17 @@ namespace ECommerceApi.Controllers
             var totalCount = query.Count();
 
             var baskets = query
-                .Skip((parameters.PageNumber - 1) * parameters.PageSize)
-                .Take(parameters.PageSize)
-                .ToList();
+    .Skip((parameters.PageNumber - 1) * parameters.PageSize)
+    .Take(parameters.PageSize)
+    .Select(b => new BasketResponseDto
+    {
+        Id = b.Id,
+        ProductId = b.ProductId,
+        Quantity = b.Quantity
+    })
+    .ToList();
 
-            var response = new PagedResponse<Basket>
+            var response = new PagedResponse<BasketResponseDto>
             {
                 PageNumber = parameters.PageNumber,
                 PageSize = parameters.PageSize,
@@ -64,41 +82,128 @@ namespace ECommerceApi.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> AddBasket([FromForm] CreateBasketDto dto)
         {
-            var basket = await _basketService.AddAsync(dto);
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if(!int.TryParse(userIdValue, out var userId))
+            {
+                return Unauthorized(new
+                {
 
-            return Ok(basket);
+                    message = "Kullanıcı bilgisi geçersiz"
+                });
+            }
+
+            var product = await _context.Products.FindAsync(dto.ProductId);
+            if (product is null)
+            {
+                throw new NotFoundException("Ürün bulunamadı.");
+            }
+
+            var existingBasket = await _context.Baskets
+                .FirstOrDefaultAsync(b => b.UserId == userId && b.ProductId == dto.ProductId);
+
+            var requestedQuantity = (existingBasket?.Quantity ?? 0) + dto.Quantity;
+
+            if (requestedQuantity > product.Stock)
+            {
+                return BadRequest(new
+                {
+                    message = "Yeterli stok yok."
+                });
+            }
+
+            if (existingBasket is not null)
+            {
+                existingBasket.Quantity = requestedQuantity;
+            }
+            else
+            {
+                existingBasket = new Basket
+                {
+                    UserId = userId,
+                    ProductId = dto.ProductId,
+                    Quantity = dto.Quantity,
+                };
+                _context.Baskets.Add(existingBasket);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new BasketResponseDto
+            {
+                Id = existingBasket.Id,
+                ProductId = existingBasket.ProductId,
+                Quantity = existingBasket.Quantity
+            });
         }
         [HttpPut("{id}")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdateBasket(int id, [FromForm] UpdateBasketDto updatedBasket)
         {
-            var basket = await _context.Baskets.FindAsync(id);
-
-            if (basket == null)
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if(!int.TryParse(userIdValue, out var userId))
             {
-                throw new NotFoundException("Bu id'ye sahip bir sepet bulunamadı.");
+                return Unauthorized(new
+                {
+                    message = "Kullanıcı bilgsi geçersiz."
+                });
             }
 
-            basket.CustomerId = updatedBasket.CustomerId;
+            var basket = await _context.Baskets
+                .FirstOrDefaultAsync(b => b.Id == id && b.UserId == userId);
+            if(basket == null)
+            {
+                throw new NotFoundException("Bu id'ye sahip bir sepet bulunamadı. ");
+            }
+
+            var product = await _context.Products.FindAsync(updatedBasket.ProductId);
+            if (product is null)
+            {
+                throw new NotFoundException("Ürün bulunamadı.");
+            }
+
+            var otherBasketQuantity = await _context.Baskets
+                .Where(b =>
+                    b.UserId == userId &&
+                    b.ProductId == updatedBasket.ProductId &&
+                    b.Id != id)
+                .SumAsync(b => b.Quantity);
+
+            if (otherBasketQuantity + updatedBasket.Quantity > product.Stock)
+            {
+                return BadRequest(new
+                {
+                    message = "Yeterli stok yok."
+                });
+            }
+
             basket.ProductId = updatedBasket.ProductId;
             basket.Quantity = updatedBasket.Quantity;
 
             await _context.SaveChangesAsync();
-
-            return Ok("Sepet başarıyla güncellendi.");
+            return Ok("Sepet Başarıyla Güncellendi");
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBasket(int id)
         {
-            var basket = await _context.Baskets.FindAsync(id);
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdValue, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = " Kullanıcı bilgi geçersiz. "
+                });
 
-            if ( basket == null)
+            }
+            var basket = await _context.Baskets
+                .FirstOrDefaultAsync(b => b.Id == id && b.UserId == userId);
+            if(basket == null)
             {
                 throw new NotFoundException("Bu id'ye sahip bir sepet bulunamadı.");
             }
-            _context.Baskets.Remove(basket); 
+            _context.Baskets.Remove(basket);
             await _context.SaveChangesAsync();
-            return Ok("Girilen id'li sepet başarıyla silindi");
-}
-}
+
+            return Ok("Girilen İd'li sepet başarıyla silindi.");
+    }
+    }
 }
