@@ -128,6 +128,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
+    await UserSeeder.SeedAsync(dbContext);
     await ProductSeeder.SeedAsync(dbContext);
 }
 app.UseMiddleware<ExceptionMiddleware>();
@@ -152,5 +153,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-
